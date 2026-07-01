@@ -54,6 +54,7 @@ Optional kann `FTP_TARGET_DIR` als Repository Variable gesetzt werden, wenn der 
 .
 |-- .github/workflows/upload-files.yml
 |-- cicd/README.md
+|-- cicd/deploy-ftp.sh
 |-- cicd/test-ftp-connection.sh
 |-- docs/images/
 |   |-- github-secrets.png

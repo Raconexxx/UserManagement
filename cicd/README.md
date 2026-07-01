@@ -18,6 +18,10 @@ Vor dem Upload läuft ein FTP-Verbindungstest:
 
 - `cicd/test-ftp-connection.sh`
 
+Der Upload selbst läuft über `lftp`:
+
+- `cicd/deploy-ftp.sh`
+
 Benötigte GitHub Repository Variables:
 
 - `FTP_URL`
@@ -29,3 +33,5 @@ Benötigte GitHub Repository Secrets:
 - `FTP_PASSWORD`
 
 Wenn der Upload erfolgreich läuft, aber im Webordner nichts sichtbar ist, muss wahrscheinlich `FTP_TARGET_DIR` auf den richtigen Zielordner beim Hoster gesetzt werden.
+
+Der Upload deaktiviert EPSV (`ftp:prefer-epsv no`), weil einige FTP-Server den Datenkanal sonst mit `ECONNRESET` abbrechen.
