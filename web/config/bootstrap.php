@@ -2,8 +2,14 @@
 
 declare(strict_types=1);
 
+const BOOTSTRAP_DROP_TABLES = 1;
+
 function bootstrapDatabase(PDO $pdo): void
 {
+    if (BOOTSTRAP_DROP_TABLES === 1) {
+        dropAppTables($pdo);
+    }
+
     $statements = [
         <<<'SQL'
 CREATE TABLE IF NOT EXISTS app_users (
@@ -11,13 +17,12 @@ CREATE TABLE IF NOT EXISTS app_users (
     username VARCHAR(80) NOT NULL,
     email VARCHAR(190) NOT NULL,
     password_hash VARCHAR(255) NOT NULL,
-    active TINYINT(1) NOT NULL DEFAULT 1,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     deactivated_at TIMESTAMP NULL DEFAULT NULL,
     UNIQUE KEY uq_app_users_username (username),
     UNIQUE KEY uq_app_users_email (email),
-    KEY idx_app_users_active (active)
+    KEY idx_app_users_deactivated_at (deactivated_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 SQL,
         <<<'SQL'
@@ -26,12 +31,11 @@ CREATE TABLE IF NOT EXISTS app_groups (
     group_key VARCHAR(80) NOT NULL,
     name VARCHAR(120) NOT NULL,
     description TEXT NULL,
-    active TINYINT(1) NOT NULL DEFAULT 1,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     deactivated_at TIMESTAMP NULL DEFAULT NULL,
     UNIQUE KEY uq_app_groups_group_key (group_key),
-    KEY idx_app_groups_active (active)
+    KEY idx_app_groups_deactivated_at (deactivated_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 SQL,
         <<<'SQL'
@@ -92,5 +96,27 @@ SQL,
 
     foreach ($statements as $statement) {
         $pdo->exec($statement);
+    }
+}
+
+function dropAppTables(PDO $pdo): void
+{
+    $tables = [
+        'app_user_permissions',
+        'app_group_permissions',
+        'app_user_groups',
+        'app_permissions',
+        'app_groups',
+        'app_users',
+    ];
+
+    $pdo->exec('SET FOREIGN_KEY_CHECKS = 0');
+
+    try {
+        foreach ($tables as $table) {
+            $pdo->exec(sprintf('DROP TABLE IF EXISTS `%s`', $table));
+        }
+    } finally {
+        $pdo->exec('SET FOREIGN_KEY_CHECKS = 1');
     }
 }
