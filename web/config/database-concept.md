@@ -4,12 +4,55 @@ Die Struktur ist auf Benutzerverwaltung, Gruppen und flexible Berechtigungen aus
 
 ## Tabellen
 
-- `app_users`: Benutzer mit Zeitstempeln und optionalem `deactivated_at`
+- `app_users`: Benutzerkonto mit Benutzername, Passwort-Hash, Zeitstempeln und optionalem `deactivated_at`
+- `app_user_profiles`: optionale 1:1 Profildaten wie Vorname, Nachname, Anzeigename und Geburtsdatum
+- `app_user_emails`: mehrere E-Mail-Adressen pro Benutzer, optional als Login freigegeben
+- `app_user_addresses`: mehrere Adressen pro Benutzer, zum Beispiel privat, Arbeit oder Rechnung
+- `app_user_attributes`: flexible Zusatzdaten als Schlüssel-Wert-Paare
 - `app_groups`: Benutzergruppen mit Zeitstempeln und optionalem `deactivated_at`
 - `app_permissions`: einzelne Berechtigungen, zum Beispiel `users.read` oder `users.write`
 - `app_user_groups`: Zuordnung Benutzer zu Gruppen
 - `app_group_permissions`: Zuordnung Gruppen zu Berechtigungen
 - `app_user_permissions`: direkte Benutzer-Berechtigungen als Ausnahme mit `allow` oder `deny`
+
+## Benutzer und E-Mail-Adressen
+
+E-Mail-Adressen liegen bewusst nicht in `app_users`. Ein Benutzer kann mehrere E-Mail-Adressen haben. Jede E-Mail-Adresse kann einzeln verifiziert und für Login freigegeben werden.
+
+Login über E-Mail-Adresse:
+
+```sql
+SELECT u.*
+FROM app_users u
+JOIN app_user_emails e ON e.user_id = u.id
+WHERE e.email = 'name@example.com'
+  AND e.login_enabled = 1
+  AND u.deactivated_at IS NULL;
+```
+
+Primäre E-Mail-Adresse setzen:
+
+```sql
+UPDATE app_user_emails
+SET is_primary = 0
+WHERE user_id = 1;
+
+UPDATE app_user_emails
+SET is_primary = 1
+WHERE user_id = 1
+  AND id = 3;
+```
+
+## Adressen und flexible Daten
+
+Adressen liegen in `app_user_addresses`, damit ein Benutzer mehrere Adressen haben kann. Für Felder, die nicht fest modelliert sind, gibt es `app_user_attributes`.
+
+Beispiel für flexible Zusatzdaten:
+
+```sql
+INSERT INTO app_user_attributes (user_id, attribute_key, attribute_value)
+VALUES (1, 'department', 'Support');
+```
 
 ## Löschen
 
