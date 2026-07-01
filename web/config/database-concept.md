@@ -5,17 +5,16 @@ Die Struktur ist auf Benutzerverwaltung, Gruppen und flexible Berechtigungen aus
 ## Tabellen
 
 - `app_users`: Benutzerkonto mit Benutzername, Passwort-Hash, Zeitstempeln und optionalem `deactivated_at`
-- `app_user_profiles`: optionale 1:1 Profildaten wie Vorname, Nachname, Anzeigename und Geburtsdatum
-- `app_user_emails`: mehrere E-Mail-Adressen pro Benutzer, optional als Login freigegeben
-- `app_user_addresses`: mehrere Adressen pro Benutzer, zum Beispiel privat, Arbeit oder Rechnung
-- `app_contact_types`: Typen für flexible Kontaktdaten, zum Beispiel `mobile`, `phone`, `website` oder Messenger
-- `app_user_contact_methods`: flexible Kontaktdaten pro Benutzer mit Verweis auf `app_contact_types`
-- `app_user_attributes`: flexible Zusatzdaten als Schlüssel-Wert-Paare
+- `app_users_emails`: mehrere E-Mail-Adressen pro Benutzer, optional als Login freigegeben
+- `app_users_addresses`: mehrere Adressen pro Benutzer, zum Beispiel privat, Arbeit oder Rechnung
+- `app_additional_types`: Typen für Zusatzinfos, zum Beispiel `mobile`, `phone`, `website` oder Messenger
+- `app_users_additionals`: Zusatzinfos pro Benutzer mit Verweis auf `app_additional_types`
+- `app_users_attributes`: flexible Zusatzdaten als Schlüssel-Wert-Paare
 - `app_groups`: Benutzergruppen mit Zeitstempeln und optionalem `deactivated_at`
 - `app_permissions`: einzelne Berechtigungen, zum Beispiel `users.read` oder `users.write`
-- `app_user_groups`: Zuordnung Benutzer zu Gruppen
-- `app_group_permissions`: Zuordnung Gruppen zu Berechtigungen
-- `app_user_permissions`: direkte Benutzer-Berechtigungen als Ausnahme mit `allow` oder `deny`
+- `app_users_groups`: Zuordnung Benutzer zu Gruppen
+- `app_groups_permissions`: Zuordnung Gruppen zu Berechtigungen
+- `app_users_permissions`: direkte Benutzer-Berechtigungen als Ausnahme mit `allow` oder `deny`
 
 ## Benutzer und E-Mail-Adressen
 
@@ -26,7 +25,7 @@ Login über E-Mail-Adresse:
 ```sql
 SELECT u.*
 FROM app_users u
-JOIN app_user_emails e ON e.user_id = u.id
+JOIN app_users_emails e ON e.users_id = u.id
 WHERE e.email = 'name@example.com'
   AND e.login_enabled = 1
   AND u.deactivated_at IS NULL;
@@ -35,44 +34,50 @@ WHERE e.email = 'name@example.com'
 Primäre E-Mail-Adresse setzen:
 
 ```sql
-UPDATE app_user_emails
+UPDATE app_users_emails
 SET is_primary = 0
-WHERE user_id = 1;
+WHERE users_id = 1;
 
-UPDATE app_user_emails
+UPDATE app_users_emails
 SET is_primary = 1
-WHERE user_id = 1
+WHERE users_id = 1
   AND id = 3;
 ```
 
 ## Adressen und flexible Daten
 
-Adressen liegen in `app_user_addresses`, damit ein Benutzer mehrere Adressen haben kann.
+Adressen liegen in `app_users_addresses`, damit ein Benutzer mehrere Adressen haben kann.
 
-Telefonnummern, Webseiten oder Messenger-Kontakte liegen in `app_user_contact_methods`. Dort kann ein Benutzer beliebig viele Werte pro Typ haben. Die Typen selbst liegen in `app_contact_types`, damit sie nicht als wiederholter Freitext gespeichert werden.
+Telefonnummern, Webseiten oder Messenger-Kontakte liegen in `app_users_additionals`. Dort kann ein Benutzer beliebig viele Werte pro Typ haben. Die Typen selbst liegen in `app_additional_types`, damit sie nicht als wiederholter Freitext gespeichert werden.
 
-Beispiel für mehrere Kontaktdaten:
+Auch Profildaten wie Geburtstag, Anzeigename oder weitere Namen können als Zusatzinfo-Typen gepflegt werden.
+
+Beispiel für mehrere Zusatzinfos:
 
 ```sql
-INSERT INTO app_contact_types (type_key, name)
+INSERT INTO app_additional_types (type_key, name)
 VALUES
     ('mobile', 'Mobiltelefon'),
     ('phone', 'Telefon'),
-    ('website', 'Webseite');
+    ('website', 'Webseite'),
+    ('birth_date', 'Geburtstag'),
+    ('display_name', 'Anzeigename');
 
-INSERT INTO app_user_contact_methods (user_id, contact_type_id, contact_value, label, is_primary)
+INSERT INTO app_users_additionals (users_id, additional_types_id, additional_value, label, is_primary)
 VALUES
     (1, 1, '+491701234567', 'privat', 1),
     (1, 2, '+49301234567', 'Büro', 0),
-    (1, 3, 'https://example.com', 'Portfolio', 0);
+    (1, 3, 'https://example.com', 'Portfolio', 0),
+    (1, 4, '2000-01-31', NULL, 0),
+    (1, 5, 'Max', NULL, 1);
 ```
 
-Für Felder, die nicht als Kontakt oder Adresse modelliert sind, gibt es `app_user_attributes`.
+Für Felder, die nicht als Kontakt oder Adresse modelliert sind, gibt es `app_users_attributes`.
 
 Beispiel für flexible Zusatzdaten:
 
 ```sql
-INSERT INTO app_user_attributes (user_id, attribute_key, attribute_value)
+INSERT INTO app_users_attributes (users_id, attribute_key, attribute_value)
 VALUES (1, 'department', 'Support');
 ```
 
