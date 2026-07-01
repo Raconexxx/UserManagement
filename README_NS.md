@@ -14,6 +14,7 @@ Verwendete Variablen:
 
 - `FTP_URL`
 - `FTP_USER`
+- `DB_HOST` optional, wenn der Datenbankhost von `FTP_URL` abweicht
 - `DB_DB`
 - `DB_USER`
 
@@ -41,12 +42,19 @@ Für den FTP-Upload werden diese GitHub-Werte verwendet:
 - Benutzer: `${{ vars.FTP_USER }}`
 - Passwort: `${{ secrets.FTP_PASSWORD }}`
 
+Vor dem Upload prüft der Workflow:
+
+- FTP-Verbindung mit `FTP_URL`, `FTP_USER` und `FTP_PASSWORD`
+- Datenbankverbindung mit `DB_HOST` oder ersatzweise `FTP_URL`, `DB_DB`, `DB_USER` und `DB_PASSWORD`
+
 ## Ordnerstruktur
 
 ```text
 .
 |-- .github/workflows/upload-files.yml
 |-- cicd/README.md
+|-- cicd/test-db-connection.sh
+|-- cicd/test-ftp-connection.sh
 |-- docs/images/
 |   |-- github-secrets.png
 |   `-- github-variables.png
