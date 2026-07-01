@@ -50,6 +50,7 @@ set ftp:passive-mode on
 set ftp:prefer-epsv no
 set ftp:ssl-allow no
 mirror --reverse --verbose --only-newer \
+  --exclude-glob config/config.example.php \
   web/ ${target_dir}
 bye
 "
