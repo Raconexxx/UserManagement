@@ -14,13 +14,22 @@ GitHub Actions führt Workflows nur aus, wenn sie unter `.github/workflows/` lie
 
 Der Workflow lädt die Projektdateien per FTP hoch, sobald auf den Branch `NS` gepusht wird.
 
+Vor dem Upload laufen zwei Verbindungstests:
+
+- `cicd/test-ftp-connection.sh`
+- `cicd/test-db-connection.sh`
+
 Benötigte GitHub Repository Variables:
 
 - `FTP_URL`
 - `FTP_USER`
+- `DB_HOST` optional, wenn der Datenbankhost nicht identisch mit `FTP_URL` ist
+- `DB_DB`
+- `DB_USER`
 
 Benötigte GitHub Repository Secrets:
 
 - `FTP_PASSWORD`
+- `DB_PASSWORD`
 
-Die Datenbankwerte `DB_DB`, `DB_USER` und `DB_PASSWORD` sind dokumentiert, werden im aktuellen Upload-Workflow aber noch nicht benötigt.
+Der Datenbanktest nutzt `DB_HOST`, falls die Variable existiert. Wenn `DB_HOST` nicht gesetzt ist, verwendet er `FTP_URL` als Fallback.

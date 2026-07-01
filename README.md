@@ -28,6 +28,7 @@ Für den Workflow sind folgende Repository-Einstellungen notwendig:
 
 - `FTP_URL`
 - `FTP_USER`
+- `DB_HOST` optional, wenn der Datenbankhost von `FTP_URL` abweicht
 - `DB_DB`
 - `DB_USER`
 
