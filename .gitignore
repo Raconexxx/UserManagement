@@ -18,6 +18,7 @@ logs/
 .env.*
 !.env.example
 *.local
+web/config/config.php
 
 # Abhängigkeiten und Build-Ausgaben
 node_modules/
