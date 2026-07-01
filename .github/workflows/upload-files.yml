@@ -34,6 +34,7 @@ jobs:
           DB_DB: ${{ vars.DB_DB }}
           DB_USER: ${{ vars.DB_USER }}
           DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          APP_BRANCH: ${{ github.ref_name }}
         run: php cicd/build-config.php
 
       - name: Upload files

@@ -31,6 +31,7 @@ const DB_NAME = %s;
 const DB_USER = %s;
 const DB_PASSWORD = %s;
 const DB_CHARSET = 'utf8mb4';
+const APP_BRANCH = %s;
 
 function db(): PDO
 {
@@ -57,7 +58,8 @@ $output = sprintf(
     var_export((string) (getenv('DB_HOST') ?: 'localhost'), true),
     var_export((string) getenv('DB_DB'), true),
     var_export((string) getenv('DB_USER'), true),
-    var_export((string) getenv('DB_PASSWORD'), true)
+    var_export((string) getenv('DB_PASSWORD'), true),
+    var_export((string) (getenv('APP_BRANCH') ?: 'unknown'), true)
 );
 
 $target = __DIR__ . '/../web/config/config.php';

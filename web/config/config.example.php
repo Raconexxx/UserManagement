@@ -7,6 +7,7 @@ const DB_NAME = 'datenbankname';
 const DB_USER = 'datenbankbenutzer';
 const DB_PASSWORD = 'datenbankpasswort';
 const DB_CHARSET = 'utf8mb4';
+const APP_BRANCH = 'NS';
 
 function db(): PDO
 {

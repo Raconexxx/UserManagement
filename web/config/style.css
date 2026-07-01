@@ -32,3 +32,21 @@ code {
     border-radius: 4px;
     background: #edf2f7;
 }
+
+section {
+    margin-top: 24px;
+}
+
+h2 {
+    margin: 0 0 10px;
+    font-size: 20px;
+}
+
+ul {
+    margin: 8px 0 0;
+    padding-left: 22px;
+}
+
+li {
+    margin: 6px 0;
+}
