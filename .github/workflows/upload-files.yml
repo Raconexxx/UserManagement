@@ -23,21 +23,15 @@ jobs:
           FTP_TARGET_DIR: ${{ vars.FTP_TARGET_DIR || './' }}
         run: bash cicd/test-ftp-connection.sh
 
+      - name: Install FTP client
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y lftp
+
       - name: Upload files
-        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
-        with:
-          server: ${{ vars.FTP_URL }}
-          username: ${{ vars.FTP_USER }}
-          password: ${{ secrets.FTP_PASSWORD }}
-          local-dir: ./
-          server-dir: ${{ vars.FTP_TARGET_DIR || './' }}
-          exclude: |
-            **/.git*
-            **/.git*/**
-            **/.github/**
-            **/cicd/**
-            **/docs/**
-            README.md
-            README_NS.md
-            .gitignore
-            .gitattributes
+        env:
+          FTP_URL: ${{ vars.FTP_URL }}
+          FTP_USER: ${{ vars.FTP_USER }}
+          FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
+          FTP_TARGET_DIR: ${{ vars.FTP_TARGET_DIR || './' }}
+        run: bash cicd/deploy-ftp.sh
