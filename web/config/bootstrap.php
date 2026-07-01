@@ -2,7 +2,8 @@
 
 declare(strict_types=1);
 
-const BOOTSTRAP_DROP_TABLES = 1;
+const BOOTSTRAP_DROP_TABLES = 0;
+const BOOTSTRAP_TEST_USER = 0;
 
 function bootstrapDatabase(PDO $pdo): void
 {
@@ -181,6 +182,10 @@ SQL,
     foreach ($statements as $statement) {
         $pdo->exec($statement);
     }
+
+    if (BOOTSTRAP_TEST_USER === 1) {
+        seedTestUser($pdo);
+    }
 }
 
 function dropAppTables(PDO $pdo): void
@@ -217,4 +222,213 @@ function dropAppTables(PDO $pdo): void
     } finally {
         $pdo->exec('SET FOREIGN_KEY_CHECKS = 1');
     }
+}
+
+function seedTestUser(PDO $pdo): void
+{
+    $pdo->beginTransaction();
+
+    try {
+        $deleteUser = $pdo->prepare('DELETE FROM app_users WHERE username = :username');
+        $deleteUser->execute(['username' => 'testuserin']);
+
+        insertAdditionalTypes($pdo);
+        insertPermissions($pdo);
+        insertGroups($pdo);
+
+        $insertUser = $pdo->prepare(
+            'INSERT INTO app_users (username, password_hash) VALUES (:username, :password_hash)'
+        );
+        $insertUser->execute([
+            'username' => 'testuserin',
+            'password_hash' => password_hash('Test123!', PASSWORD_DEFAULT),
+        ]);
+
+        $usersId = (int) $pdo->lastInsertId();
+        $groupsId = fetchId($pdo, 'app_groups', 'group_key', 'admins');
+
+        $insertEmail = $pdo->prepare(
+            'INSERT INTO app_users_emails
+                (users_id, email, label, is_primary, login_enabled, verified_at)
+             VALUES
+                (:users_id, :email, :label, :is_primary, :login_enabled, CURRENT_TIMESTAMP)'
+        );
+        $insertEmail->execute([
+            'users_id' => $usersId,
+            'email' => 'testuserin@example.com',
+            'label' => 'privat',
+            'is_primary' => 1,
+            'login_enabled' => 1,
+        ]);
+        $insertEmail->execute([
+            'users_id' => $usersId,
+            'email' => 'testuserin.arbeit@example.com',
+            'label' => 'Arbeit',
+            'is_primary' => 0,
+            'login_enabled' => 1,
+        ]);
+
+        $insertAddress = $pdo->prepare(
+            'INSERT INTO app_users_addresses
+                (users_id, label, recipient_name, street, house_number, address_extra, postal_code, city, region, country_code, is_primary)
+             VALUES
+                (:users_id, :label, :recipient_name, :street, :house_number, :address_extra, :postal_code, :city, :region, :country_code, :is_primary)'
+        );
+        $insertAddress->execute([
+            'users_id' => $usersId,
+            'label' => 'privat',
+            'recipient_name' => 'Test Benutzerin',
+            'street' => 'Musterstraße',
+            'house_number' => '12',
+            'address_extra' => null,
+            'postal_code' => '12345',
+            'city' => 'Musterstadt',
+            'region' => null,
+            'country_code' => 'DE',
+            'is_primary' => 1,
+        ]);
+        $insertAddress->execute([
+            'users_id' => $usersId,
+            'label' => 'Arbeit',
+            'recipient_name' => 'Test Benutzerin',
+            'street' => 'Büroallee',
+            'house_number' => '7',
+            'address_extra' => '2. OG',
+            'postal_code' => '54321',
+            'city' => 'Beispielstadt',
+            'region' => null,
+            'country_code' => 'DE',
+            'is_primary' => 0,
+        ]);
+
+        insertUserAdditional($pdo, $usersId, 'display_name', 'Test Benutzerin', null, 1);
+        insertUserAdditional($pdo, $usersId, 'birth_date', '2000-01-31', null, 0);
+        insertUserAdditional($pdo, $usersId, 'mobile', '+491701234567', 'privat', 1);
+        insertUserAdditional($pdo, $usersId, 'phone', '+49301234567', 'Büro', 0);
+        insertUserAdditional($pdo, $usersId, 'website', 'https://example.com', 'Portfolio', 0);
+
+        $insertAttribute = $pdo->prepare(
+            'INSERT INTO app_users_attributes (users_id, attribute_key, attribute_value)
+             VALUES (:users_id, :attribute_key, :attribute_value)'
+        );
+        $insertAttribute->execute([
+            'users_id' => $usersId,
+            'attribute_key' => 'department',
+            'attribute_value' => 'Support',
+        ]);
+
+        $insertUserGroup = $pdo->prepare(
+            'INSERT IGNORE INTO app_users_groups (users_id, groups_id) VALUES (:users_id, :groups_id)'
+        );
+        $insertUserGroup->execute([
+            'users_id' => $usersId,
+            'groups_id' => $groupsId,
+        ]);
+
+        $pdo->commit();
+    } catch (Throwable $exception) {
+        $pdo->rollBack();
+        throw $exception;
+    }
+}
+
+function insertAdditionalTypes(PDO $pdo): void
+{
+    $types = [
+        'mobile' => 'Mobiltelefon',
+        'phone' => 'Telefon',
+        'website' => 'Webseite',
+        'birth_date' => 'Geburtstag',
+        'display_name' => 'Anzeigename',
+    ];
+
+    $insert = $pdo->prepare(
+        'INSERT IGNORE INTO app_additional_types (type_key, name) VALUES (:type_key, :name)'
+    );
+
+    foreach ($types as $typeKey => $name) {
+        $insert->execute([
+            'type_key' => $typeKey,
+            'name' => $name,
+        ]);
+    }
+}
+
+function insertPermissions(PDO $pdo): void
+{
+    $permissions = [
+        'users.read' => 'Benutzer lesen',
+        'users.write' => 'Benutzer bearbeiten',
+        'groups.manage' => 'Gruppen verwalten',
+        'permissions.manage' => 'Berechtigungen verwalten',
+    ];
+
+    $insertPermission = $pdo->prepare(
+        'INSERT IGNORE INTO app_permissions (permission_key, name) VALUES (:permission_key, :name)'
+    );
+
+    foreach ($permissions as $permissionKey => $name) {
+        $insertPermission->execute([
+            'permission_key' => $permissionKey,
+            'name' => $name,
+        ]);
+    }
+}
+
+function insertGroups(PDO $pdo): void
+{
+    $insertGroup = $pdo->prepare(
+        'INSERT IGNORE INTO app_groups (group_key, name, description)
+         VALUES (:group_key, :name, :description)'
+    );
+    $insertGroup->execute([
+        'group_key' => 'admins',
+        'name' => 'Administratoren',
+        'description' => 'Voller Zugriff auf Benutzer, Gruppen und Berechtigungen.',
+    ]);
+
+    $groupsId = fetchId($pdo, 'app_groups', 'group_key', 'admins');
+
+    $insertGroupPermission = $pdo->prepare(
+        'INSERT IGNORE INTO app_groups_permissions (groups_id, permissions_id)
+         VALUES (:groups_id, :permissions_id)'
+    );
+
+    foreach (['users.read', 'users.write', 'groups.manage', 'permissions.manage'] as $permissionKey) {
+        $insertGroupPermission->execute([
+            'groups_id' => $groupsId,
+            'permissions_id' => fetchId($pdo, 'app_permissions', 'permission_key', $permissionKey),
+        ]);
+    }
+}
+
+function insertUserAdditional(PDO $pdo, int $usersId, string $typeKey, string $value, ?string $label, int $isPrimary): void
+{
+    $insert = $pdo->prepare(
+        'INSERT INTO app_users_additionals
+            (users_id, additional_types_id, additional_value, label, is_primary, verified_at)
+         VALUES
+            (:users_id, :additional_types_id, :additional_value, :label, :is_primary, CURRENT_TIMESTAMP)'
+    );
+    $insert->execute([
+        'users_id' => $usersId,
+        'additional_types_id' => fetchId($pdo, 'app_additional_types', 'type_key', $typeKey),
+        'additional_value' => $value,
+        'label' => $label,
+        'is_primary' => $isPrimary,
+    ]);
+}
+
+function fetchId(PDO $pdo, string $table, string $column, string $value): int
+{
+    $statement = $pdo->prepare(sprintf('SELECT id FROM `%s` WHERE `%s` = :value LIMIT 1', $table, $column));
+    $statement->execute(['value' => $value]);
+
+    $id = $statement->fetchColumn();
+
+    if ($id === false) {
+        throw new RuntimeException(sprintf('Datensatz nicht gefunden: %s.%s = %s', $table, $column, $value));
+    }
+
+    return (int) $id;
 }
