@@ -41,10 +41,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['logout'])) {
                 ON e.users_id = u.id
                 AND e.login_enabled = 1
              WHERE u.deactivated_at IS NULL
-               AND (u.username = :login OR e.email = :login)
+               AND (u.username = :username_login OR e.email = :email_login)
              LIMIT 1'
         );
-        $statement->execute(['login' => $login]);
+        $statement->execute([
+            'username_login' => $login,
+            'email_login' => $login,
+        ]);
         $user = $statement->fetch();
 
         if ($user !== false && password_verify($password, (string) $user['password_hash'])) {
