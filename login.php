@@ -11,7 +11,8 @@
     </div>
     <div>
         <input type="text" id="LoginUsername" name="LoginUsername" placeholder="Username" required>
-        <input type="password">
+        <input type="password" id="LoginPassword" name="LoginPassword" placeholder="Password" required>
+        <input type="submit" id="LoginSubmit" name="LoginSubmit" value="Anmelden">
     </div>
 </body>
 </html>
