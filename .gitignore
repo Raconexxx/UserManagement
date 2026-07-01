@@ -1,0 +1,33 @@
+# Betriebssysteme
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editoren
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Logs
+*.log
+logs/
+
+# Lokale Umgebungen und Zugangsdaten
+.env
+.env.*
+!.env.example
+*.local
+
+# Abhängigkeiten und Build-Ausgaben
+node_modules/
+dist/
+build/
+coverage/
+
+# PHP/Composer, falls das Projekt später PHP-Dateien enthält
+vendor/
+
+# Temporäre Dateien
+tmp/
+temp/
