@@ -81,6 +81,65 @@ INSERT INTO app_users_attributes (users_id, attribute_key, attribute_value)
 VALUES (1, 'department', 'Support');
 ```
 
+## Benutzer und E-Mail-Adressen
+
+E-Mail-Adressen liegen bewusst nicht in `app_users`. Ein Benutzer kann mehrere E-Mail-Adressen haben. Jede E-Mail-Adresse kann einzeln verifiziert und für Login freigegeben werden.
+
+Login über E-Mail-Adresse:
+
+```sql
+SELECT u.*
+FROM app_users u
+JOIN app_user_emails e ON e.user_id = u.id
+WHERE e.email = 'name@example.com'
+  AND e.login_enabled = 1
+  AND u.deactivated_at IS NULL;
+```
+
+Primäre E-Mail-Adresse setzen:
+
+```sql
+UPDATE app_user_emails
+SET is_primary = 0
+WHERE user_id = 1;
+
+UPDATE app_user_emails
+SET is_primary = 1
+WHERE user_id = 1
+  AND id = 3;
+```
+
+## Adressen und flexible Daten
+
+Adressen liegen in `app_user_addresses`, damit ein Benutzer mehrere Adressen haben kann.
+
+Telefonnummern, Webseiten oder Messenger-Kontakte liegen in `app_user_contact_methods`. Dort kann ein Benutzer beliebig viele Werte pro Typ haben. Die Typen selbst liegen in `app_contact_types`, damit sie nicht als wiederholter Freitext gespeichert werden.
+
+Beispiel für mehrere Kontaktdaten:
+
+```sql
+INSERT INTO app_contact_types (type_key, name)
+VALUES
+    ('mobile', 'Mobiltelefon'),
+    ('phone', 'Telefon'),
+    ('website', 'Webseite');
+
+INSERT INTO app_user_contact_methods (user_id, contact_type_id, contact_value, label, is_primary)
+VALUES
+    (1, 1, '+491701234567', 'privat', 1),
+    (1, 2, '+49301234567', 'Büro', 0),
+    (1, 3, 'https://example.com', 'Portfolio', 0);
+```
+
+Für Felder, die nicht als Kontakt oder Adresse modelliert sind, gibt es `app_user_attributes`.
+
+Beispiel für flexible Zusatzdaten:
+
+```sql
+INSERT INTO app_user_attributes (user_id, attribute_key, attribute_value)
+VALUES (1, 'department', 'Support');
+```
+
 ## Löschen
 
 Benutzer und Gruppen werden fachlich nicht hart gelöscht. Stattdessen wird `deactivated_at` befüllt. Ist `deactivated_at` leer, gilt der Datensatz als aktiv.
