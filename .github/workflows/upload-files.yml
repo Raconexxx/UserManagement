@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - NS
+      - MH
   workflow_dispatch:
 
 jobs:
