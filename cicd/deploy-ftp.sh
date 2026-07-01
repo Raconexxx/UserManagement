@@ -34,6 +34,11 @@ fi
 
 echo "Lade Dateien nach ${FTP_URL}/${target_dir} hoch ..."
 
+if [[ ! -d "web" ]]; then
+  echo "Der Ordner web/ fehlt."
+  exit 1
+fi
+
 lftp \
   -u "${FTP_USER},${FTP_PASSWORD}" \
   "ftp://${FTP_URL}" \
@@ -45,18 +50,6 @@ set ftp:passive-mode on
 set ftp:prefer-epsv no
 set ftp:ssl-allow no
 mirror --reverse --verbose --only-newer \
-  --exclude-glob .git/ \
-  --exclude-glob .git/** \
-  --exclude-glob .github/ \
-  --exclude-glob .github/** \
-  --exclude-glob cicd/ \
-  --exclude-glob cicd/** \
-  --exclude-glob docs/ \
-  --exclude-glob docs/** \
-  --exclude-glob README.md \
-  --exclude-glob README_NS.md \
-  --exclude-glob .gitignore \
-  --exclude-glob .gitattributes \
-  ./ ${target_dir}
+  web/ ${target_dir}
 bye
 "
