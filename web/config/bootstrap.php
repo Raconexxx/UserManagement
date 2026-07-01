@@ -15,14 +15,112 @@ function bootstrapDatabase(PDO $pdo): void
 CREATE TABLE IF NOT EXISTS app_users (
     id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     username VARCHAR(80) NOT NULL,
-    email VARCHAR(190) NOT NULL,
     password_hash VARCHAR(255) NOT NULL,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     deactivated_at TIMESTAMP NULL DEFAULT NULL,
     UNIQUE KEY uq_app_users_username (username),
-    UNIQUE KEY uq_app_users_email (email),
     KEY idx_app_users_deactivated_at (deactivated_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+SQL,
+        <<<'SQL'
+CREATE TABLE IF NOT EXISTS app_user_profiles (
+    user_id INT UNSIGNED PRIMARY KEY,
+    first_name VARCHAR(120) NULL,
+    last_name VARCHAR(120) NULL,
+    display_name VARCHAR(160) NULL,
+    birth_date DATE NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    CONSTRAINT fk_app_user_profiles_user
+        FOREIGN KEY (user_id) REFERENCES app_users (id)
+        ON UPDATE CASCADE ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+SQL,
+        <<<'SQL'
+CREATE TABLE IF NOT EXISTS app_user_emails (
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    user_id INT UNSIGNED NOT NULL,
+    email VARCHAR(190) NOT NULL,
+    label VARCHAR(40) NULL,
+    is_primary TINYINT(1) NOT NULL DEFAULT 0,
+    login_enabled TINYINT(1) NOT NULL DEFAULT 1,
+    verified_at TIMESTAMP NULL DEFAULT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    UNIQUE KEY uq_app_user_emails_email (email),
+    KEY idx_app_user_emails_user_id (user_id),
+    KEY idx_app_user_emails_login_enabled (login_enabled),
+    CONSTRAINT fk_app_user_emails_user
+        FOREIGN KEY (user_id) REFERENCES app_users (id)
+        ON UPDATE CASCADE ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+SQL,
+        <<<'SQL'
+CREATE TABLE IF NOT EXISTS app_user_addresses (
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    user_id INT UNSIGNED NOT NULL,
+    label VARCHAR(40) NULL,
+    recipient_name VARCHAR(160) NULL,
+    street VARCHAR(190) NULL,
+    house_number VARCHAR(40) NULL,
+    address_extra VARCHAR(190) NULL,
+    postal_code VARCHAR(40) NULL,
+    city VARCHAR(120) NULL,
+    region VARCHAR(120) NULL,
+    country_code CHAR(2) NOT NULL DEFAULT 'DE',
+    is_primary TINYINT(1) NOT NULL DEFAULT 0,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    KEY idx_app_user_addresses_user_id (user_id),
+    CONSTRAINT fk_app_user_addresses_user
+        FOREIGN KEY (user_id) REFERENCES app_users (id)
+        ON UPDATE CASCADE ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+SQL,
+        <<<'SQL'
+CREATE TABLE IF NOT EXISTS app_contact_types (
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    type_key VARCHAR(60) NOT NULL,
+    name VARCHAR(120) NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    UNIQUE KEY uq_app_contact_types_type_key (type_key)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+SQL,
+        <<<'SQL'
+CREATE TABLE IF NOT EXISTS app_user_contact_methods (
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    user_id INT UNSIGNED NOT NULL,
+    contact_type_id INT UNSIGNED NOT NULL,
+    contact_value VARCHAR(255) NOT NULL,
+    label VARCHAR(80) NULL,
+    is_primary TINYINT(1) NOT NULL DEFAULT 0,
+    verified_at TIMESTAMP NULL DEFAULT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    KEY idx_app_user_contact_methods_user_id (user_id),
+    KEY idx_app_user_contact_methods_contact_type_id (contact_type_id),
+    CONSTRAINT fk_app_user_contact_methods_user
+        FOREIGN KEY (user_id) REFERENCES app_users (id)
+        ON UPDATE CASCADE ON DELETE CASCADE,
+    CONSTRAINT fk_app_user_contact_methods_contact_type
+        FOREIGN KEY (contact_type_id) REFERENCES app_contact_types (id)
+        ON UPDATE CASCADE ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+SQL,
+        <<<'SQL'
+CREATE TABLE IF NOT EXISTS app_user_attributes (
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    user_id INT UNSIGNED NOT NULL,
+    attribute_key VARCHAR(120) NOT NULL,
+    attribute_value TEXT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    UNIQUE KEY uq_app_user_attributes_user_key (user_id, attribute_key),
+    CONSTRAINT fk_app_user_attributes_user
+        FOREIGN KEY (user_id) REFERENCES app_users (id)
+        ON UPDATE CASCADE ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 SQL,
         <<<'SQL'
@@ -105,6 +203,12 @@ function dropAppTables(PDO $pdo): void
         'app_user_permissions',
         'app_group_permissions',
         'app_user_groups',
+        'app_user_attributes',
+        'app_user_contact_methods',
+        'app_contact_types',
+        'app_user_addresses',
+        'app_user_emails',
+        'app_user_profiles',
         'app_permissions',
         'app_groups',
         'app_users',
