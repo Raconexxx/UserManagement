@@ -2,6 +2,18 @@
 
 Dieses Repository enthält die Dateien für das UserManagement-Projekt.
 
+# Git Befehle
+
+| Befehl                 | Nutzen                                        |
+|--------                |--------                                       |
+|git switch 'XYZ'        |Wechsel auf entsprechenden Branch              |
+|git merge master        |Zieht die aktuelle Version des master Branches |
+> - Die aktuelle Version vom Master auf den eigenen Branch aktualisieren
+>   - git switch 'eigener Branch'
+>   - git merge master
+
+--- 
+
 ## Branch
 
 Aktiver Arbeitsbranch: `NS`
@@ -46,7 +58,5 @@ Die Screenshots der eingerichteten GitHub-Zugänge liegen unter:
 
 - `docs/images/github-variables.png`
 - `docs/images/github-secrets.png`
-# Git Befehle
-> - Die aktuelle Version vom Master auf den eigenen Branch aktualisieren
->   - git switch 'eigener Branch'
->   - git merge master
+
+---
