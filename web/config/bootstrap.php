@@ -79,10 +79,20 @@ CREATE TABLE IF NOT EXISTS app_user_addresses (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 SQL,
         <<<'SQL'
+CREATE TABLE IF NOT EXISTS app_contact_types (
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    type_key VARCHAR(60) NOT NULL,
+    name VARCHAR(120) NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    UNIQUE KEY uq_app_contact_types_type_key (type_key)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+SQL,
+        <<<'SQL'
 CREATE TABLE IF NOT EXISTS app_user_contact_methods (
     id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     user_id INT UNSIGNED NOT NULL,
-    contact_type VARCHAR(60) NOT NULL,
+    contact_type_id INT UNSIGNED NOT NULL,
     contact_value VARCHAR(255) NOT NULL,
     label VARCHAR(80) NULL,
     is_primary TINYINT(1) NOT NULL DEFAULT 0,
@@ -90,9 +100,12 @@ CREATE TABLE IF NOT EXISTS app_user_contact_methods (
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     KEY idx_app_user_contact_methods_user_id (user_id),
-    KEY idx_app_user_contact_methods_type (contact_type),
+    KEY idx_app_user_contact_methods_contact_type_id (contact_type_id),
     CONSTRAINT fk_app_user_contact_methods_user
         FOREIGN KEY (user_id) REFERENCES app_users (id)
+        ON UPDATE CASCADE ON DELETE CASCADE,
+    CONSTRAINT fk_app_user_contact_methods_contact_type
+        FOREIGN KEY (contact_type_id) REFERENCES app_contact_types (id)
         ON UPDATE CASCADE ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 SQL,
@@ -192,6 +205,7 @@ function dropAppTables(PDO $pdo): void
         'app_user_groups',
         'app_user_attributes',
         'app_user_contact_methods',
+        'app_contact_types',
         'app_user_addresses',
         'app_user_emails',
         'app_user_profiles',
