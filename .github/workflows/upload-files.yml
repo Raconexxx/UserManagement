@@ -1,0 +1,37 @@
+name: Upload files
+
+on:
+  push:
+    branches:
+      - NS
+  workflow_dispatch:
+
+jobs:
+  upload:
+    name: Test FTP and upload files
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Test FTP connection
+        env:
+          FTP_URL: ${{ vars.FTP_URL }}
+          FTP_USER: ${{ vars.FTP_USER }}
+          FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
+          FTP_TARGET_DIR: ${{ vars.FTP_TARGET_DIR || './' }}
+        run: bash cicd/test-ftp-connection.sh
+
+      - name: Install FTP client
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y lftp
+
+      - name: Upload files
+        env:
+          FTP_URL: ${{ vars.FTP_URL }}
+          FTP_USER: ${{ vars.FTP_USER }}
+          FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
+          FTP_TARGET_DIR: ${{ vars.FTP_TARGET_DIR || './' }}
+        run: bash cicd/deploy-ftp.sh
