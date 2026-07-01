@@ -8,7 +8,7 @@ on:
 
 jobs:
   upload:
-    name: Test connections and upload files
+    name: Test FTP and upload files
     runs-on: ubuntu-latest
 
     steps:
@@ -20,21 +20,8 @@ jobs:
           FTP_URL: ${{ vars.FTP_URL }}
           FTP_USER: ${{ vars.FTP_USER }}
           FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
+          FTP_TARGET_DIR: ${{ vars.FTP_TARGET_DIR || './' }}
         run: bash cicd/test-ftp-connection.sh
-
-      - name: Install MySQL client
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y default-mysql-client
-
-      - name: Test database connection
-        env:
-          DB_HOST: ${{ vars.DB_HOST }}
-          DB_DB: ${{ vars.DB_DB }}
-          DB_USER: ${{ vars.DB_USER }}
-          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
-          FTP_URL: ${{ vars.FTP_URL }}
-        run: bash cicd/test-db-connection.sh
 
       - name: Upload files
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
@@ -43,7 +30,7 @@ jobs:
           username: ${{ vars.FTP_USER }}
           password: ${{ secrets.FTP_PASSWORD }}
           local-dir: ./
-          server-dir: ./
+          server-dir: ${{ vars.FTP_TARGET_DIR || './' }}
           exclude: |
             **/.git*
             **/.git*/**
@@ -53,3 +40,4 @@ jobs:
             README.md
             README_NS.md
             .gitignore
+            .gitattributes
