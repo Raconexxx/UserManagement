@@ -45,7 +45,8 @@ Für den FTP-Upload werden diese GitHub-Werte verwendet:
 Vor dem Upload prüft der Workflow:
 
 - FTP-Verbindung mit `FTP_URL`, `FTP_USER` und `FTP_PASSWORD`
-- Datenbankverbindung mit `DB_HOST` oder ersatzweise `FTP_URL`, `DB_DB`, `DB_USER` und `DB_PASSWORD`
+
+Optional kann `FTP_TARGET_DIR` als Repository Variable gesetzt werden, wenn der Upload nicht direkt in das FTP-Root gehen soll.
 
 ## Ordnerstruktur
 
@@ -53,7 +54,6 @@ Vor dem Upload prüft der Workflow:
 .
 |-- .github/workflows/upload-files.yml
 |-- cicd/README.md
-|-- cicd/test-db-connection.sh
 |-- cicd/test-ftp-connection.sh
 |-- docs/images/
 |   |-- github-secrets.png
