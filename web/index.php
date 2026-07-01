@@ -40,6 +40,7 @@ try {
 <body>
     <main>
         <h1>UserManagement Upload-Test</h1>
+        <h3>Test von Manu</h3>
         <p>Wenn du diese Seite auf dem Server siehst, hat der GitHub-Actions-Upload funktioniert.</p>
         <p>Branch: <code><?= htmlspecialchars($branch, ENT_QUOTES, 'UTF-8') ?></code></p>
         <p>Serverzeit: <code><?= htmlspecialchars($timestamp, ENT_QUOTES, 'UTF-8') ?></code></p>
