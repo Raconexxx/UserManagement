@@ -2,8 +2,8 @@
 
 declare(strict_types=1);
 
-const BOOTSTRAP_DROP_TABLES = 1;
-const BOOTSTRAP_TEST_USER = 1;
+const BOOTSTRAP_DROP_TABLES = 0;
+const BOOTSTRAP_TEST_USER = 0;
 
 function bootstrapDatabase(PDO $pdo): void
 {
