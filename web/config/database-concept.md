@@ -8,7 +8,8 @@ Die Struktur ist auf Benutzerverwaltung, Gruppen und flexible Berechtigungen aus
 - `app_user_profiles`: optionale 1:1 Profildaten wie Vorname, Nachname, Anzeigename und Geburtsdatum
 - `app_user_emails`: mehrere E-Mail-Adressen pro Benutzer, optional als Login freigegeben
 - `app_user_addresses`: mehrere Adressen pro Benutzer, zum Beispiel privat, Arbeit oder Rechnung
-- `app_user_contact_methods`: flexible Kontaktdaten wie `mobile`, `phone`, `website` oder Messenger-Kontakte
+- `app_contact_types`: Typen für flexible Kontaktdaten, zum Beispiel `mobile`, `phone`, `website` oder Messenger
+- `app_user_contact_methods`: flexible Kontaktdaten pro Benutzer mit Verweis auf `app_contact_types`
 - `app_user_attributes`: flexible Zusatzdaten als Schlüssel-Wert-Paare
 - `app_groups`: Benutzergruppen mit Zeitstempeln und optionalem `deactivated_at`
 - `app_permissions`: einzelne Berechtigungen, zum Beispiel `users.read` oder `users.write`
@@ -48,16 +49,22 @@ WHERE user_id = 1
 
 Adressen liegen in `app_user_addresses`, damit ein Benutzer mehrere Adressen haben kann.
 
-Telefonnummern, Webseiten oder Messenger-Kontakte liegen in `app_user_contact_methods`. Dort kann ein Benutzer beliebig viele Werte pro Typ haben.
+Telefonnummern, Webseiten oder Messenger-Kontakte liegen in `app_user_contact_methods`. Dort kann ein Benutzer beliebig viele Werte pro Typ haben. Die Typen selbst liegen in `app_contact_types`, damit sie nicht als wiederholter Freitext gespeichert werden.
 
 Beispiel für mehrere Kontaktdaten:
 
 ```sql
-INSERT INTO app_user_contact_methods (user_id, contact_type, contact_value, label, is_primary)
+INSERT INTO app_contact_types (type_key, name)
 VALUES
-    (1, 'mobile', '+491701234567', 'privat', 1),
-    (1, 'phone', '+49301234567', 'Büro', 0),
-    (1, 'website', 'https://example.com', 'Portfolio', 0);
+    ('mobile', 'Mobiltelefon'),
+    ('phone', 'Telefon'),
+    ('website', 'Webseite');
+
+INSERT INTO app_user_contact_methods (user_id, contact_type_id, contact_value, label, is_primary)
+VALUES
+    (1, 1, '+491701234567', 'privat', 1),
+    (1, 2, '+49301234567', 'Büro', 0),
+    (1, 3, 'https://example.com', 'Portfolio', 0);
 ```
 
 Für Felder, die nicht als Kontakt oder Adresse modelliert sind, gibt es `app_user_attributes`.
