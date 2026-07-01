@@ -13,6 +13,7 @@ if (!is_file($configFile)) {
 }
 
 require $configFile;
+require __DIR__ . '/config/layout.php';
 
 $login = trim((string) ($_POST['login'] ?? ''));
 $password = (string) ($_POST['password'] ?? '');
@@ -63,15 +64,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['logout'])) {
     }
 }
 ?>
-<!doctype html>
-<html lang="de">
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Login NS</title>
-    <link rel="stylesheet" href="config/style.css">
-</head>
-<body>
+<?php head('Login NS'); ?>
     <main>
         <h1>Login NS</h1>
         <p>Testzugang: <code>testuserin</code> oder <code>testuserin@example.com</code> mit <code>Test123!</code></p>
@@ -100,5 +93,4 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['logout'])) {
             </form>
         <?php endif; ?>
     </main>
-</body>
-</html>
+<?php foot(); ?>
